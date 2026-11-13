@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>BetSmart AI</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 15px;
+    background: #101827;
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+h1 {
+    color: #00e5a0;
+    font-size: 25px;
+}
+
+.badge {
+    background: #174b3b;
+    padding: 7px 12px;
+    border-radius: 20px;
+    color: #00e5a0;
+}
+
+.container {
+    max-width: 600px;
+    margin: auto;
+}
+
+.card {
+    background: #1d293b;
+    padding: 18px;
+    border-radius: 12px;
+    margin-top: 15px;
+}
+
+button {
+    background: #00c98b;
+    color: #101827;
+    border: none;
+    padding: 13px;
+    border-radius: 8px;
+    width: 100%;
+    font-weight: bold;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+button:disabled {
+    opacity: 0.6;
+}
+
+select {
+    width: 100%;
+    padding: 12px;
+    background: #101827;
+    color: white;
+    border: 1px solid #40516b;
+    border-radius: 8px;
+}
+
+.match {
+    background: #263449;
+    padding: 14px;
+    border-radius: 9px;
+    margin-top: 12px;
+}
+
+.green {
+    color: #00e5a0;
+}
+
+.muted {
+    color: #aab7ca;
+    font-size: 13px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+<h1>⚽ BetSmart AI</h1>
+<span class="badge">AI ENGINE</span>
+</header>
+
+<p class="muted">
+Worldwide Football Intelligence Platform
+</p>
+
+<div class="card">
+
+<h3>🌍 Match Scanner</h3>
+
+<label for="league">Select competition</label>
+
+<br><br>
+
+<select id="league">
+
+<option value="all">All Competitions</option>
+
+<option value="39">Premier League</option>
+
+<option value="140">La Liga</option>
+
+<option value="135">Serie A</option>
+
+<option value="78">Bundesliga</option>
+
+<option value="61">Ligue 1</option>
+
+<option value="kenya">Kenyan Football</option>
+
+</select>
+
+<br><br>
+
+<button id="scanButton" onclick="loadMatches()">
+🔍 ANALYSE MATCHES
+</button>
+
+<p class="muted" id="status">
+Ready to scan matches.
+</p>
+
+</div>
+
+<div class="card">
+
+<h3>🏆 Best AI Picks</h3>
+
+<div id="picks">
+
+<p class="muted">
+No verified predictions yet.
+</p>
+
+</div>
+
+</div>
+
+<div class="card">
+
+<h3>📅 Upcoming Matches</h3>
+
+<div id="matches">
+
+<p class="muted">
+Match data will appear here when the secure football API is connected.
+</p>
+
+</div>
+
+</div>
+
+<div class="card">
+
+<h3>📊 Performance Tracker</h3>
+
+<p>Correct predictions: <span class="green">0</span></p>
+
+<p>Incorrect predictions: 0</p>
+
+<p>Predictions recorded: 0</p>
+
+<p class="muted">
+Performance tracking starts when real predictions are recorded.
+</p>
+
+</div>
+
+<div class="card">
+
+<h3>⚙️ Automatic Analysis</h3>
+
+<p class="muted">
+The system will retrieve fixtures, compare bookmaker odds and analyse match statistics automatically.
+</p>
+
+<p class="green">
+Automatic refresh: 15 minutes
+</p>
+
+<p class="muted">
+Live analysis becomes available after backend connection.
+</p>
+
+</div>
+
+</div>
+
+<script>
+
+let scanning = false;
+
+async function loadMatches() {
+
+    if (scanning) return;
+
+    scanning = true;
+
+    const status = document.getElementById("status");
+    const button = document.getElementById("scanButton");
+    const matches = document.getElementById("matches");
+
+    const league = document.getElementById("league").value;
+
+    button.disabled = true;
+
+    status.innerText = "Connecting to football data...";
+
+    try {
+
+        const response = await fetch(
+            "/api/fixtures?league=" + encodeURIComponent(league)
+        );
+
+        if (!response.ok) {
+            throw new Error("Backend not connected");
+        }
+
+        const data = await response.json();
+
+        if (!Array.isArray(data.fixtures)) {
+            throw new Error("Invalid football data");
+        }
+
+        if (data.fixtures.length === 0) {
+
+            matches.textContent = "No upcoming matches found.";
+
+        } else {
+
+            matches.replaceChildren();
+
+            data.fixtures.forEach(match => {
+
+                const box = document.createElement("div");
+                box.className = "match";
+
+                const teams = document.createElement("strong");
+                teams.textContent =
+                    match.home + " vs " + match.away;
+
+                const date = document.createElement("p");
+                date.className = "muted";
+                date.textContent = match.date || "Date unavailable";
+
+                box.appendChild(teams);
+                box.appendChild(date);
+
+                matches.appendChild(box);
+
+            });
+
+        }
+
+        status.innerText = "Match data updated successfully.";
+
+    } catch (error) {
+
+        status.innerText =
+            "Backend not connected yet. Football data will appear after setup.";
+
+    } finally {
+
+        scanning = false;
+        button.disabled = false;
+
+    }
+
+}
+
+setInterval(loadMatches, 15 * 60 * 1000);
+
+</script>
+
+</body>
+</html>
